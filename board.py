@@ -1,17 +1,32 @@
 import random
-from typing import Union, Iterator
+from typing import Union, Iterator, Collection
 
 
 class Board:
     default_rows_num: int = 4
     default_columns_num: int = 4
 
-    def __init__(self, rows_num: int = default_rows_num, columns_num: int = default_columns_num):
+    def __init__(self, rows_num: int = default_rows_num, columns_num: int = default_columns_num,
+                 values: Collection[int] = None):
         self._rows_num = rows_num
         self._columns_num = columns_num
 
-        tiles_values = list(range(rows_num * columns_num))
-        random.shuffle(tiles_values)
+        if values:
+            if len(values) != rows_num * columns_num:
+                raise AttributeError(f'Provided values sequence length: {len(values)} '
+                                     f'does not match board dimensions {rows_num}x{columns_num}')
+
+            if len(values) != len(set(values)):
+                raise ValueError('Provided values sequence contains duplicate values')
+
+            if any(val < 0 or val > rows_num * columns_num - 1 for val in values):
+                raise ValueError(f'At least one provided value does not fit in range [0, {rows_num * columns_num - 1}]')
+
+            tiles_values = values
+
+        else:
+            tiles_values = list(range(rows_num * columns_num))
+            random.shuffle(tiles_values)
 
         self._tiles = {index: value for index, value in zip(range(1, rows_num * columns_num + 1), tiles_values)}
         self._blank_title_pos = next(key for key, value in self._tiles.items() if value == 0)
