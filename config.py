@@ -36,7 +36,7 @@ def validate_parsed_args(parsed_args: argparse.Namespace):
             raise ValueError(f'{arg_name} value must be no less than 2, provided: {arg_value}')
 
 
-def get_dimensions_and_values_from_file(file_path: str) -> tuple[list[int, int], list[int]]:
+def get_dimensions_and_values_from_file(file_path: str) -> tuple[list[int], list[int]]:
     with open(file_path, 'r') as f:
         dimensions = [int(val) for val in f.readline().split()]
 
