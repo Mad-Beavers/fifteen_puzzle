@@ -87,3 +87,23 @@ class Board:
 
         if any(val < 0 or val > rows_num * columns_num - 1 for val in values):
             raise ValueError(f'At least one provided value does not fit in range [0, {rows_num * columns_num - 1}]')
+
+    def is_solvable(self) -> bool:
+        if self._columns_num != self._rows_num:
+            raise NotImplementedError('MxN puzzle validation is yet to be implemented')
+
+        else:
+            if self._columns_num % 2:
+                return self.get_inversions_count(list(self._tiles.values())) % 2 == 0
+            else:
+                inversions_count = self.get_inversions_count(list(self._tiles.values()))
+                return (self._blank_title_pos - 1) // self._columns_num % 2 != inversions_count % 2
+
+    @staticmethod
+    def get_inversions_count(values: list[int]) -> int:
+        values.remove(0)
+
+        # looping through all tiles and accumulating sum of inversions for each
+        return sum(
+            sum(1 for val in values[i + 1:] if val < x)
+            for i, x in enumerate(values))

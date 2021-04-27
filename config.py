@@ -1,8 +1,7 @@
 import argparse
 import os.path
 import re
-from collections import Collection
-from typing import Optional
+from typing import Optional, Collection
 
 
 def get_parsed_args() -> argparse.Namespace:
