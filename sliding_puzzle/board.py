@@ -86,7 +86,9 @@ class Board:
     def get_inversions_count(values: Iterable[int]) -> int:
         if type(values) != list:
             values = list(values)
-        values.remove(0)
+
+        if 0 in values:
+            values.remove(0)
 
         # looping through all tiles and accumulating sum of inversions for each
         return sum(

@@ -8,7 +8,6 @@ from contextlib import contextmanager
 @contextmanager
 def print_bold_pink():
     print('\033[1m', end='')
-    # print('\033[33m')
     print('\033[38;5;219m', end='')
     yield
     print('\033[0m', end='')
@@ -74,10 +73,3 @@ def validate_values_len(rows_num: int, columns_num: int, values: Collection[int]
 
 def get_values_from_args(args: argparse.Namespace) -> Optional[list[int]]:
     return [int(x) for x in re.split(r',\s?', args.values)] if args.values else None
-
-
-if __name__ == '__main__':
-    print('jajko')
-    with print_bold_yellow():
-        print('jajko2')
-    print('jajko3')
