@@ -2,23 +2,6 @@ import argparse
 import os.path
 import re
 from typing import Optional, Collection
-from contextlib import contextmanager
-
-
-@contextmanager
-def print_bold_pink():
-    print('\033[1m', end='')
-    print('\033[38;5;219m', end='')
-    yield
-    print('\033[0m', end='')
-
-
-@contextmanager
-def print_bold_green():
-    print('\033[1m', end='')
-    print('\033[32m', end='')
-    yield
-    print('\033[0m', end='')
 
 
 def get_parsed_args() -> argparse.Namespace:
