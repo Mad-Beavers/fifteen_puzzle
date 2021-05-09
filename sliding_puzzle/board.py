@@ -1,6 +1,8 @@
+import math
 import random
 from typing import Union, Iterator, Iterable, Sequence
 from collections import namedtuple
+from copy import deepcopy
 
 Tile_pos = namedtuple('Tile_index', ('row', 'column'))
 
@@ -74,19 +76,34 @@ class Board:
             if key not in 'awsd':
                 continue
 
-            blank_title_pos = self._blank_title_pos
+            self.move(key)
 
-            if key == 'a' and blank_title_pos.column != self._columns_num:
-                self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
+    def move(self, key: str):
+        if key not in 'awsd':
+            raise AttributeError("Move has to be one of 'a', 'w', 's' or 'd'")
+        elif key not in self.get_available_moves():
+            raise AttributeError("Illegal move made")
 
-            elif key == 'd' and blank_title_pos.column != 1:
-                self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
+        blank_title_pos = self._blank_title_pos
 
-            elif key == 's' and blank_title_pos.row != 1:
-                self._swap_titles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
+        moves = {'a': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1)),
+                 'd': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1)),
+                 's': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column)),
+                 'w': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))}
 
-            elif key == 'w' and blank_title_pos.row != self._rows_num:
-                self._swap_titles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
+        moves[key]()
+
+    def get_available_moves(self) -> list[str]:
+        available_moves = []
+        if self._blank_title_pos.column != self._columns_num:
+            available_moves.append('a')
+        if self._blank_title_pos.column != 1:
+            available_moves.append('d')
+        if self._blank_title_pos.row != 1:
+            available_moves.append('s')
+        if self._blank_title_pos.row != self._rows_num:
+            available_moves.append('w')
+        return available_moves
 
     def is_solved(self) -> bool:
         return all(self._tiles[key] == (key if key != len(self._tiles) else 0) for key in self._tiles)
@@ -102,6 +119,18 @@ class Board:
                 return inversion_count % 2 == 0
             else:
                 return (self._rows_num + 1 - self._blank_title_pos.row) % 2 != inversion_count % 2
+
+    def get_tile_distance_from_solved(self, tile_position: tuple[int, int]) -> int:
+        if (tile_value := self._tiles.get(tile_position)) is None:
+            raise AttributeError('Given position is not present in board')
+
+        if tile_value == 0:
+            solved_position = (self.rows_num, self._columns_num)
+        else:
+            solved_position = ((tile_value - 1) // self._columns_num + 1,
+                               column if (column := tile_value % self._columns_num) != 0 else self._columns_num)
+
+        return sum(math.fabs(a - b) for a, b in zip(tile_position, solved_position))
 
     @staticmethod
     def get_inversions_count(values: Iterable[int]) -> int:
@@ -132,3 +161,9 @@ class Board:
 
         if any(val < 0 or val > rows_num * columns_num - 1 for val in values):
             raise ValueError(f'At least one provided value does not fit in range [0, {rows_num * columns_num - 1}]')
+
+    def __hash__(self) -> int:
+        return hash(tuple(self._tiles.items()))
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, self.__class__) and self._tiles.items() == other._tiles.items()
