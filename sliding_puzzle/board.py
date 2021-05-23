@@ -2,7 +2,6 @@ import math
 import random
 from typing import Union, Iterator, Iterable, Sequence
 from collections import namedtuple
-from copy import deepcopy
 
 Tile_pos = namedtuple('Tile_index', ('row', 'column'))
 
@@ -86,12 +85,14 @@ class Board:
 
         blank_title_pos = self._blank_title_pos
 
-        moves = {'a': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1)),
-                 'd': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1)),
-                 's': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column)),
-                 'w': lambda: self._swap_titles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))}
-
-        moves[key]()
+        if key == 'a':
+            self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
+        elif key == 'd':
+            self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
+        elif key == 's':
+            self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
+        elif key == 'w':
+            self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
 
     def get_available_moves(self) -> list[str]:
         available_moves = []
@@ -145,7 +146,7 @@ class Board:
             sum(1 for val in values[i + 1:] if val < x)
             for i, x in enumerate(values))
 
-    def _swap_titles(self, blank_title_pos: tuple[int, int], title_pos: tuple[int, int]):
+    def _swap_tiles(self, blank_title_pos: tuple[int, int], title_pos: tuple[int, int]):
         self._blank_title_pos = title_pos if isinstance(title_pos, Tile_pos) else Tile_pos(*title_pos)
         self._tiles[blank_title_pos], self._tiles[title_pos] = self._tiles[title_pos], self._tiles[blank_title_pos]
         self.moves_count += 1

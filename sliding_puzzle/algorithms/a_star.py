@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from functools import cache
-from typing import Sequence, Optional, Deque
-from collections import deque
 
 from sliding_puzzle.board import Board
 
@@ -36,8 +33,12 @@ class AStarNode:
         return self.g + self.h
 
 
+def get_hamming_distance(board: Board) -> int:
+    return sum(1 for tile_pos in board.tiles if board.get_tile_distance_from_solved(tile_pos) == 0)
+
+
 def get_manhattan_distance_value(board: Board) -> int:
-    return sum(board.get_tile_distance_from_solved(tile_pos) for tile_pos in board.tiles)
+    return sum(board.get_tile_distance_from_solved(tile_pos) for tile_pos, val in board.tiles.items() if val != 0)
 
 
 def a_search(board: Board, heuristic: str) -> AStarNode:
@@ -49,10 +50,17 @@ def a_search(board: Board, heuristic: str) -> AStarNode:
     closed_nodes_dict: dict[Board, AStarNode] = {}
     # open_nodes = {starting_node}
     # closed_nodes = set()
+    counter = 0
+    moves = []
 
     while len(open_nodes_dict) > 0:
         current_node = open_nodes_dict.pop(min(open_nodes_dict, key=lambda k: open_nodes_dict[k].total_cost))
-        print(current_node.total_cost)
+        # if current_node.leading_moves in moves:
+        #     print('coś się zjebało')
+        # else:
+        #     moves.append(current_node.leading_moves)
+
+        print(current_node.total_cost, counter, current_node.leading_moves)
         closed_nodes_dict |= {current_node.board: current_node}
 
         if current_node.board.is_solved():
@@ -60,6 +68,8 @@ def a_search(board: Board, heuristic: str) -> AStarNode:
             return current_node
 
         for move in current_node.board.get_available_moves():
+            counter += 1
+            # print(counter)
             new_board = deepcopy(current_node.board)
             new_board.move(move)
 
@@ -70,7 +80,3 @@ def a_search(board: Board, heuristic: str) -> AStarNode:
                 continue
 
             open_nodes_dict[new_board] = new_node
-
-
-def get_hamming_distance(board: Board) -> int:
-    return sum(1 for tile_pos in board.tiles if board.get_tile_distance_from_solved(tile_pos) == 0)
