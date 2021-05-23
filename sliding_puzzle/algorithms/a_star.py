@@ -12,7 +12,8 @@ class AStarNode:
     heuristic: str
     parent_node: AStarNode = None
     g: int = 0
-    leading_moves: list[str] = field(default_factory=list)
+    # leading_moves: list[str] = field(default_factory=list)
+    leading_move: str = None
 
     def __hash__(self) -> int:
         return hash(self.board)
@@ -41,7 +42,7 @@ def get_manhattan_distance_value(board: Board) -> int:
     return sum(board.get_tile_distance_from_solved(tile_pos) for tile_pos, val in board.tiles.items() if val != 0)
 
 
-def a_search(board: Board, heuristic: str) -> AStarNode:
+def a_star(board: Board, heuristic: str) -> AStarNode:
     # if not move_sequence:
     #     move_sequence = []
     # nodes_queue: Deque[AStarNode] = deque()
@@ -55,10 +56,6 @@ def a_search(board: Board, heuristic: str) -> AStarNode:
 
     while len(open_nodes_dict) > 0:
         current_node = open_nodes_dict.pop(min(open_nodes_dict, key=lambda k: open_nodes_dict[k].total_cost))
-        # if current_node.leading_moves in moves:
-        #     print('coś się zjebało')
-        # else:
-        #     moves.append(current_node.leading_moves)
 
         print(current_node.total_cost, counter, current_node.leading_moves)
         closed_nodes_dict |= {current_node.board: current_node}
@@ -74,9 +71,13 @@ def a_search(board: Board, heuristic: str) -> AStarNode:
             new_board.move(move)
 
             new_node = AStarNode(new_board, heuristic, current_node, g=current_node.g + 1,
-                                 leading_moves=[*current_node.leading_moves, move])
+                                 leading_move=move)
 
             if new_node in closed_nodes_dict or (node := open_nodes_dict.get(new_board)) and node.g <= new_node.g:
                 continue
 
             open_nodes_dict[new_board] = new_node
+
+
+if __name__ == '__main__':
+    b = Board(4, 4, [0, 1, 2, 11, 5, 4, 7, 6, 10, 9, 8, 3, 14, 15, 12, 13])

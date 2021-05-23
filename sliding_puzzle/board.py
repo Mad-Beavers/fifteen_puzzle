@@ -81,29 +81,30 @@ class Board:
         if key not in 'awsd':
             raise AttributeError("Move has to be one of 'a', 'w', 's' or 'd'")
         elif key not in self.get_available_moves():
-            raise AttributeError("Illegal move made")
+            # raise AttributeError("Illegal move made")
+            return
 
         blank_title_pos = self._blank_title_pos
 
-        if key == 'a':
+        if key == 'd':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
-        elif key == 'd':
+        elif key == 'a':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
-        elif key == 's':
-            self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
         elif key == 'w':
+            self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
+        elif key == 's':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
 
     def get_available_moves(self) -> list[str]:
         available_moves = []
         if self._blank_title_pos.column != self._columns_num:
-            available_moves.append('a')
-        if self._blank_title_pos.column != 1:
             available_moves.append('d')
+        if self._blank_title_pos.column != 1:
+            available_moves.append('a')
         if self._blank_title_pos.row != 1:
-            available_moves.append('s')
-        if self._blank_title_pos.row != self._rows_num:
             available_moves.append('w')
+        if self._blank_title_pos.row != self._rows_num:
+            available_moves.append('s')
         return available_moves
 
     def is_solved(self) -> bool:
