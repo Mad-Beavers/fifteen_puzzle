@@ -7,7 +7,6 @@ Tile_pos = namedtuple('Tile_pos', ('row', 'column'))
 
 
 class Board:
-
     __slots__ = '_rows_num', '_columns_num', '_tiles', '_blank_tile_pos'
 
     default_rows_num: int = 4
@@ -57,8 +56,9 @@ class Board:
     def columns_num(self) -> int:
         return self._columns_num
 
-    def play(self, move_sequence: Iterable[str], print_after_each_move: bool = True):
-        move_sequence = iter(move_sequence)
+    def play(self, move_sequence: Iterable[str] = None, print_after_each_move: bool = True):
+        if move_sequence:
+            move_sequence = iter(move_sequence)
 
         while True:
             if print_after_each_move:
@@ -78,38 +78,38 @@ class Board:
                 if key == 'b':
                     return
 
-            if key not in 'awsd':
+            if key not in 'rlud':
                 continue
 
             self.move(key)
 
     def move(self, key: str):
-        # if key not in 'awsd':
-        #     raise AttributeError("Move has to be one of 'a', 'w', 's' or 'd'")
-        # elif key not in self.get_available_moves():
-        #     # raise AttributeError("Illegal move made")
-        #     return
+        if key not in 'rlud':
+            raise AttributeError("Move has to be one of 'a', 'w', 's' or 'd'")
+        elif key not in self.get_available_moves():
+            # raise AttributeError("Illegal move made")
+            return
         blank_title_pos = self._blank_tile_pos
 
-        if key == 'd':
+        if key == 'r':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
-        elif key == 'a':
+        elif key == 'l':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
-        elif key == 'w':
+        elif key == 'u':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
-        elif key == 's':
+        elif key == 'd':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
 
     def get_available_moves(self) -> list[str]:
         available_moves = []
         if self._blank_tile_pos.column != self._columns_num:
-            available_moves.append('d')
+            available_moves.append('r')
         if self._blank_tile_pos.column != 1:
-            available_moves.append('a')
+            available_moves.append('l')
         if self._blank_tile_pos.row != 1:
-            available_moves.append('w')
+            available_moves.append('u')
         if self._blank_tile_pos.row != self._rows_num:
-            available_moves.append('s')
+            available_moves.append('d')
         return available_moves
 
     def is_solved(self) -> bool:
