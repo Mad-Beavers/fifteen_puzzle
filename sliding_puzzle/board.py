@@ -1,7 +1,7 @@
 import math
 import random
 from collections import namedtuple
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, Tuple, Dict, List
 
 Tile_pos = namedtuple('Tile_pos', ('row', 'column'))
 
@@ -13,7 +13,7 @@ class Board:
     default_columns_num: int = 4
 
     def __init__(self, rows_num: int = default_rows_num, columns_num: int = default_columns_num,
-                 values: Sequence[int] = None, tiles: dict[Tile_pos, int] = None):
+                 values: Sequence[int] = None, tiles: Dict[Tile_pos, int] = None):
 
         if any(dim < 2 for dim in (columns_num, rows_num)):
             raise ValueError('At least one dimension is less than 2')
@@ -33,7 +33,8 @@ class Board:
                 tiles_values = list(range(rows_num * columns_num))
                 random.shuffle(tiles_values)
 
-            self._tiles = {Tile_pos(i // columns_num + 1, x if (x := (i + 1) % columns_num) != 0 else columns_num): val
+            self._tiles = {Tile_pos(i // columns_num + 1,
+                                    (i + 1) % columns_num if (i + 1) % columns_num != 0 else columns_num): val
                            for i, val in enumerate(tiles_values)}
 
         self._blank_tile_pos: Tile_pos = next(key for key, value in self._tiles.items() if value == 0)
@@ -100,7 +101,7 @@ class Board:
         elif key == 'd':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
 
-    def get_available_moves(self) -> list[str]:
+    def get_available_moves(self) -> List[str]:
         available_moves = []
         if self._blank_tile_pos.column != self._columns_num:
             available_moves.append('r')
@@ -127,15 +128,18 @@ class Board:
             else:
                 return (self._rows_num + 1 - self._blank_tile_pos.row) % 2 != inversion_count % 2
 
-    def get_tile_distance_from_solved(self, tile_position: tuple[int, int]) -> int:
-        if (tile_value := self._tiles.get(tile_position)) is None:
+    def get_tile_distance_from_solved(self, tile_position: Tuple[int, int]) -> int:
+        if self._tiles.get(tile_position) is None:
             raise AttributeError('Given position is not present in board')
+
+        tile_value = self._tiles.get(tile_position)
 
         if tile_value == 0:
             solved_position = (self.rows_num, self._columns_num)
         else:
             solved_position = ((tile_value - 1) // self._columns_num + 1,
-                               column if (column := tile_value % self._columns_num) != 0 else self._columns_num)
+                               tile_value % self._columns_num if tile_value % self._columns_num != 0
+                               else self._columns_num)
 
         return sum(math.fabs(a - b) for a, b in zip(tile_position, solved_position))
 
@@ -152,7 +156,7 @@ class Board:
             sum(1 for val in values[i + 1:] if val < x)
             for i, x in enumerate(values))
 
-    def _swap_tiles(self, blank_title_pos: tuple[int, int], tile_pos: tuple[int, int]):
+    def _swap_tiles(self, blank_title_pos: Tuple[int, int], tile_pos: Tuple[int, int]):
         blank_title_pos, tile_pos = Tile_pos(*blank_title_pos), Tile_pos(*tile_pos)
         self._blank_tile_pos = tile_pos
         self._tiles[blank_title_pos], self._tiles[tile_pos] = self._tiles[tile_pos], self._tiles[blank_title_pos]
