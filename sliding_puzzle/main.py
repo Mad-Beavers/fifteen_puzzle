@@ -1,8 +1,8 @@
-from board import Board
-from config import get_parsed_args, get_dimensions_and_values_from_file
-from algorithms.a_star import a_star_main
+from sliding_puzzle.algorithms.a_star import a_star_main
 from sliding_puzzle.algorithms.bfs import bfs_main
 from sliding_puzzle.algorithms.dfs import dfs_main
+from sliding_puzzle.board import Board
+from sliding_puzzle.config import get_parsed_args, get_dimensions_and_values_from_file
 
 
 def save_solution_file(file: str, solution: list[str]):
