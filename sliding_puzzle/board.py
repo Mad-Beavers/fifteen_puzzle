@@ -5,6 +5,7 @@ from typing import Iterable, Sequence, Tuple, Dict, List
 
 Tile_pos = namedtuple('Tile_pos', ('row', 'column'))
 
+order = 'rdul'
 
 class Board:
     __slots__ = '_rows_num', '_columns_num', '_tiles', '_blank_tile_pos'
