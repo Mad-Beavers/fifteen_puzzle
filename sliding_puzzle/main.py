@@ -7,7 +7,7 @@ from sliding_puzzle.config import get_parsed_args, get_dimensions_and_values_fro
 
 def save_solution_file(file: str, solution: list[str]):
     with open(file, 'w') as f:
-        f.write(f'{len(solution)}\n{solution}')
+        f.write(f'{len(solution) if solution else -1}\n{solution}')
 
 
 def save_stats_file(file: str, solution_len: int, visited_count: int,
@@ -40,15 +40,6 @@ def main():
 
     solution, visited_count, processed_count, max_recursion_depth, execution_time = \
         {'astr': a_star_main, 'bfs': bfs_main, 'dfs': dfs_main}[algorithm](board, order)
-
-    path_len = len(solution) if solution else -1
-
-    print(f'''{solution=}
-{path_len=}
-{visited_count=}
-{processed_count=}
-{max_recursion_depth=}
-{execution_time=}''')
 
     save_solution_file(solution_file, solution)
     save_stats_file(stats_file, len(solution), visited_count, processed_count, max_recursion_depth, execution_time)
