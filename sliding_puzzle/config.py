@@ -1,7 +1,7 @@
 import argparse
 import os.path
 import re
-from typing import Optional, Collection
+from typing import Optional, Collection, Tuple, List
 
 
 def get_parsed_args() -> argparse.Namespace:
@@ -35,7 +35,7 @@ def validate_parsed_args(parsed_args: argparse.Namespace):
             raise ValueError(f'{arg_name} value must be no less than 2, provided: {arg_value}')
 
 
-def get_dimensions_and_values_from_file(file_path: str) -> tuple[list[int], list[int]]:
+def get_dimensions_and_values_from_file(file_path: str) -> Tuple[List[int], List[int]]:
     with open(file_path, 'r') as f:
         dimensions = [int(val) for val in f.readline().split()]
 
@@ -54,5 +54,5 @@ def validate_values_len(rows_num: int, columns_num: int, values: Collection[int]
                        f'does not match provided dimensions: {rows_num}x{columns_num}')
 
 
-def get_values_from_args(args: argparse.Namespace) -> Optional[list[int]]:
+def get_values_from_args(args: argparse.Namespace) -> Optional[List[int]]:
     return [int(x) for x in re.split(r',\s?', args.values)] if args.values else None
