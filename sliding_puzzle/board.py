@@ -1,12 +1,10 @@
 import math
 import random
-import time
 from collections import namedtuple
-from typing import Iterable, Sequence, Tuple, Dict, List
+from typing import Iterable, Sequence
 
 Tile_pos = namedtuple('Tile_pos', ('row', 'column'))
 
-order = 'rdul'
 
 class Board:
     __slots__ = '_rows_num', '_columns_num', '_tiles', '_blank_tile_pos'
@@ -15,7 +13,7 @@ class Board:
     default_columns_num: int = 4
 
     def __init__(self, rows_num: int = default_rows_num, columns_num: int = default_columns_num,
-                 values: Sequence[int] = None, tiles: Dict[Tile_pos, int] = None):
+                 values: Sequence[int] = None, tiles: dict[Tile_pos, int] = None):
 
         if any(dim < 2 for dim in (columns_num, rows_num)):
             raise ValueError('At least one dimension is less than 2')
@@ -81,38 +79,38 @@ class Board:
                 if key == 'b':
                     return
 
-            if key not in 'rlud':
+            if key not in 'RLUD':
                 continue
 
             self.move(key)
 
     def move(self, key: str):
-        if key not in 'rlud':
-            raise AttributeError("Move has to be one of 'r', 'l', 'u' or 'd'")
+        if key not in 'RLUD':
+            raise AttributeError("Move has to be one of 'R', 'L', 'U' or 'D'")
         elif key not in self.get_available_moves():
             # raise AttributeError("Illegal move made")
             return
         blank_title_pos = self._blank_tile_pos
 
-        if key == 'r':
+        if key == 'R':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
-        elif key == 'l':
+        elif key == 'L':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
-        elif key == 'u':
+        elif key == 'U':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
-        elif key == 'd':
+        elif key == 'D':
             self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
 
-    def get_available_moves(self) -> List[str]:
+    def get_available_moves(self) -> list[str]:
         available_moves = []
         if self._blank_tile_pos.column != self._columns_num:
-            available_moves.append('r')
+            available_moves.append('R')
         if self._blank_tile_pos.column != 1:
-            available_moves.append('l')
+            available_moves.append('L')
         if self._blank_tile_pos.row != 1:
-            available_moves.append('u')
+            available_moves.append('U')
         if self._blank_tile_pos.row != self._rows_num:
-            available_moves.append('d')
+            available_moves.append('D')
         return available_moves
 
     def is_solved(self) -> bool:
@@ -135,7 +133,7 @@ class Board:
             else:
                 return (self._rows_num + 1 - self._blank_tile_pos.row) % 2 != inversion_count % 2
 
-    def get_tile_distance_from_solved(self, tile_position: Tuple[int, int]) -> int:
+    def get_tile_distance_from_solved(self, tile_position: tuple[int, int]) -> int:
         if self._tiles.get(tile_position) is None:
             raise AttributeError('Given position is not present in board')
 
@@ -163,7 +161,7 @@ class Board:
             sum(1 for val in values[i + 1:] if val < x)
             for i, x in enumerate(values))
 
-    def _swap_tiles(self, blank_title_pos: Tuple[int, int], tile_pos: Tuple[int, int]):
+    def _swap_tiles(self, blank_title_pos: tuple[int, int], tile_pos: tuple[int, int]):
         blank_title_pos, tile_pos = Tile_pos(*blank_title_pos), Tile_pos(*tile_pos)
         self._blank_tile_pos = tile_pos
         self._tiles[blank_title_pos], self._tiles[tile_pos] = self._tiles[tile_pos], self._tiles[blank_title_pos]
@@ -185,22 +183,3 @@ class Board:
 
     def __eq__(self, other) -> bool:
         return isinstance(other, self.__class__) and self._tiles == other._tiles
-
-
-if __name__ == '__main__':
-    b = Board(4, 4, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])
-    x = list(range(16))
-    random.shuffle(x)
-    b2 = Board(4, 4, x)
-    # print(b2)
-    # print(b2.is_solvable())
-    print(b.is_solved())
-    print(b.is_solved_two())
-    start_time = time.time()
-    for _ in range(100_000):
-        x = b2.is_solved()
-    print(f'first is_solved: {time.time() - start_time}')
-
-    for _ in range(100_000):
-        x = b2.is_solved_two()
-    print(f'second is_solved: {time.time() - start_time}')
