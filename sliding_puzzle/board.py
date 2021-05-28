@@ -174,7 +174,7 @@ class Board:
             raise ValueError(f'At least one provided value does not fit in range [0, {rows_num * columns_num - 1}]')
 
     def __hash__(self) -> int:
-        return hash(tuple(self._tiles.items()))
+        return hash(frozenset(self._tiles.items()))
 
     def __eq__(self, other) -> bool:
         return isinstance(other, self.__class__) and self._tiles.items() == other._tiles.items()
