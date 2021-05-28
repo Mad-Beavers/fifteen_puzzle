@@ -2,10 +2,20 @@ from __future__ import annotations
 
 import time
 from copy import deepcopy
-from typing import Optional, Dict
+from typing import Optional, Dict, Iterable
 
 from sliding_puzzle.board import Board
 from sliding_puzzle.config import get_dimensions_and_values_from_file
+
+
+def timer(function):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = function(*args, **kwargs)
+        print(f'Function "{function.__name__}" execution took {time.time() - start_time}s')
+        return result
+
+    return wrapper
 
 
 class AStarNode:
@@ -42,83 +52,74 @@ class AStarNode:
 
 
 def get_hamming_distance(board: Board) -> int:
-    return sum(1 for tile_pos in board.tiles if board.get_tile_distance_from_solved(tile_pos) == 0)
+    return sum(1 for tile_pos in board.tiles if board.get_tile_distance_from_solved(tile_pos) != 0)
 
 
 def get_manhattan_distance_value(board: Board) -> int:
     return sum(board.get_tile_distance_from_solved(tile_pos) for tile_pos, val in board.tiles.items() if val != 0)
 
 
-def a_star(board: Board, heuristic: str) -> Optional[AStarNode]:
-    starting_node = AStarNode(board, heuristic)
-    # open_nodes_dict: dict[Board, AStarNode] = {starting_node.board: starting_node}
-    # open_nodes: set[AStarNode] = {starting_node}
-    open_nodes: Dict[AStarNode, int] = {starting_node: starting_node.total_cost}
-    closed_nodes: Dict[AStarNode, int] = {}
-    # closed_nodes_dict: dict[Board, AStarNode] = {}
-
+@timer
+def a_star(board_______: Board, heuristic: str) -> Optional[AStarNode]:
     counter = 0
-    super_start_time = time.time()
+    start_node = AStarNode(board_______, heuristic)
+    # open_nodes: Dict[AStarNode, int, int] = {start_node: start_node.total_cost}
+    # visited_nodes = {}
+
+    open_nodes = {start_node}
+    visited_nodes = set()
+
     while len(open_nodes) > 0:
-        # current_node = open_nodes_dict.pop(min(open_nodes_dict, key=lambda k: open_nodes_dict[k].total_cost))
-        start_time = time.time()
-        current_node: AStarNode = min(open_nodes, key=open_nodes.get)
-        open_nodes.pop(current_node)
-        closed_nodes[current_node] = current_node.total_cost
-
-        stop_time = time.time() - start_time
-        # if counter % 1000 == 0:
-        #     print(f'{stop_time=}')
-
-        # print(current_node.total_cost, counter, current_node.leading_move)
-        # closed_nodes_dict |= {current_node.board: current_node}
+        current_node: AStarNode = min(open_nodes, key=lambda x: x.total_cost)
 
         if current_node.board.is_solved():
-            print('Yo, I made it!')
+            print('Done')
+            print(current_node.board)
             return current_node
 
+        open_nodes.discard(current_node)
+        visited_nodes.add(current_node)
+
         for move in current_node.board.get_available_moves():
-            counter += 1
-            if counter % 20_000 == 0:
-                print(f'super stop time = {time.time() - super_start_time}')
-                super_start_time = time.time()
-            # if counter % 1000 == 0:
-            #     print(current_node.board)
-            #     print(current_node.h)
-            # print(counter)
-            new_board = deepcopy(current_node.board)
+            new_board = Board(current_node.board.rows_num, current_node.board.columns_num,
+                              tiles=current_node.board.tiles)
+            # print(move)
+
+            # print(current_node.board)
             new_board.move(move)
+            # counter += 1
+            # if counter % 10000 == 0:
+            #     print(new_board)
+            #     print(counter)
 
-            new_node = AStarNode(new_board, heuristic, current_node, level=current_node.level + 1,
-                                 leading_move=move)
+            new_node = AStarNode(new_board, heuristic, current_node, current_node.level + 1, move)
 
-            # if new_board in open_nodes_dict and open_nodes_dict[new_board].total_cost < new_node.total_cost:
-            #     continue
+            # print(new_node.board)
 
-            if new_node in open_nodes and open_nodes[new_node] < new_node.total_cost:
+            if new_node in visited_nodes:
                 continue
 
-            # if new_board in closed_nodes_dict and closed_nodes_dict[new_board].total_cost < new_node.total_cost:
-            #     continue
+            open_nodes.add(new_node)
 
-            if new_node in closed_nodes and closed_nodes[new_node] < new_node.total_cost:
-                continue
 
-            if new_node in open_nodes:
-                del open_nodes[new_node]
+def get_path_to_solved(final_node: AStarNode) -> Iterable[str]:
+    current_node = final_node
+    path = []
 
-            if new_node in closed_nodes:
-                del closed_nodes[new_node]
+    while current_node.parent_node:
+        path.append(current_node.leading_move)
+        current_node = current_node.parent_node
 
-            open_nodes[new_node] = new_node.total_cost
-    return None
+    return reversed(path)
 
 
 if __name__ == '__main__':
     # args = get_parsed_args()
-    board_file = r'../../generated_puzzles/3x3_01_00001.txt'
+    # board_file = r'../../generated_puzzles/4x4_13_06588.txt'
+    board_file = r'../../generated_puzzles/4x4_13_06589.txt'
 
     (rows_num, columns_num), values = get_dimensions_and_values_from_file(board_file)
+    # values = [3, 5, 12, 13, 4, 2, 9, 11, 7, 1, 14, 10, 6, 8, 0, 15]
 
     # getting kwargs dict and filtering non-None values
     board_kwargs = {name: value for name, value
@@ -127,13 +128,18 @@ if __name__ == '__main__':
                         'values': values}.items() if value}
 
     board = Board(**board_kwargs)
+    print(board.is_solvable())
+    # x = a_star(board, 'hamming')
 
-    start_time = time.time()
-    tilezz = board.tiles
-    for _ in range(100_000):
-        x = hash(frozenset(tilezz.items()))
-    print(f'hashing 1 took {time.time() - start_time}')
+    x = a_star(board, 'hamming')
 
-    for _ in range(100_000):
-        x = hash(tuple(tilezz.items()))
-    print(f'hashing 2 took {time.time() - start_time}')
+    # x = a_star(board, 'manhattan')
+
+    print(list(get_path_to_solved(x)))
+    board.play()
+
+    # start_time = time.time()
+    # for _ in range(100_000):
+    #     z = board.is_solved()
+    # print(time.time() - start_time)
+    # ['u', 'r', 'd', 'r', 'u', 'l', 'l', 'd', 'r', 'u', 'r', 'r', 'd'] hamming

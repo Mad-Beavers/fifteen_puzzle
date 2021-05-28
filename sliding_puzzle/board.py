@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from collections import namedtuple
 from typing import Iterable, Sequence, Tuple, Dict, List
 
@@ -86,7 +87,7 @@ class Board:
 
     def move(self, key: str):
         if key not in 'rlud':
-            raise AttributeError("Move has to be one of 'a', 'w', 's' or 'd'")
+            raise AttributeError("Move has to be one of 'r', 'l', 'u' or 'd'")
         elif key not in self.get_available_moves():
             # raise AttributeError("Illegal move made")
             return
@@ -114,7 +115,12 @@ class Board:
         return available_moves
 
     def is_solved(self) -> bool:
-        return all(self._tiles[key] == (key if key != len(self._tiles) else 0) for key in self._tiles)
+        return all(val == expected for val, expected in zip(self._tiles.values(),
+                                                            (*(range(1, self._rows_num * self._columns_num)), 0)))
+
+    def is_solved_two(self):
+        return all(val == (expected if expected != self._rows_num * self._columns_num else 0)
+                   for val, expected in zip(self._tiles.values(), range(1, self._rows_num * self._columns_num + 1)))
 
     def is_solvable(self) -> bool:
         if self._columns_num != self._rows_num:
@@ -177,4 +183,23 @@ class Board:
         return hash(frozenset(self._tiles.items()))
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, self.__class__) and self._tiles.items() == other._tiles.items()
+        return isinstance(other, self.__class__) and self._tiles == other._tiles
+
+
+if __name__ == '__main__':
+    b = Board(4, 4, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])
+    x = list(range(16))
+    random.shuffle(x)
+    b2 = Board(4, 4, x)
+    # print(b2)
+    # print(b2.is_solvable())
+    print(b.is_solved())
+    print(b.is_solved_two())
+    start_time = time.time()
+    for _ in range(100_000):
+        x = b2.is_solved()
+    print(f'first is_solved: {time.time() - start_time}')
+
+    for _ in range(100_000):
+        x = b2.is_solved_two()
+    print(f'second is_solved: {time.time() - start_time}')
