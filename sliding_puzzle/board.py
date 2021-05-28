@@ -115,7 +115,8 @@ class Board:
         return available_moves
 
     def is_solved(self) -> bool:
-        return all(self._tiles[key] == (key if key != len(self._tiles) else 0) for key in self._tiles)
+        return all(val == expected for val, expected in zip(self._tiles.values(),
+                                                            (*(range(1, self._rows_num * self._columns_num)), 0)))
 
     def is_solvable(self) -> bool:
         if self._columns_num != self._rows_num:
