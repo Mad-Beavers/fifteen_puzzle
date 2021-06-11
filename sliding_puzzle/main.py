@@ -1,3 +1,5 @@
+from typing import List
+
 from sliding_puzzle.algorithms.a_star import a_star_main
 from sliding_puzzle.algorithms.bfs import bfs_main
 from sliding_puzzle.algorithms.dfs import dfs_main
@@ -5,7 +7,7 @@ from sliding_puzzle.board import Board
 from sliding_puzzle.config import get_parsed_args, get_dimensions_and_values_from_file
 
 
-def save_solution_file(file: str, solution: list[str]):
+def save_solution_file(file: str, solution: List[str]):
     with open(file, 'w') as f:
         f.write(f'{len(solution) if solution else -1}\n{solution}')
 
@@ -25,8 +27,8 @@ def main():
 
     (rows_num, columns_num), values = get_dimensions_and_values_from_file(args.board_file)
 
-    algorithm = args.algorithm[0] if isinstance(args.algorithm, tuple) else args.algorithm
-    order = args.order
+    algorithm: str = args.algorithm[0] if isinstance(args.algorithm, tuple) else args.algorithm
+    order: str = args.order
     solution_file = args.solution_file
     stats_file = args.stats_file
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Iterable
+from typing import Optional, Tuple, List
 
 from sliding_puzzle.board import Board
 from sliding_puzzle.decorators import timer
@@ -43,7 +43,7 @@ def sort_key(node: AStarNode) -> int:
 
 
 @timer
-def a_star(initial_board: Board, heuristic: str) -> tuple[Optional[AStarNode], int, int, int]:
+def a_star(initial_board: Board, heuristic: str) -> Tuple[Optional[AStarNode], int, int, int]:
     processed_count = 0
     max_depth = 0
 
@@ -76,9 +76,10 @@ def a_star(initial_board: Board, heuristic: str) -> tuple[Optional[AStarNode], i
                 continue
 
             open_nodes.append(new_node)
+    return None, 0, 0, 0  # default return values, should never be reached, stated to satisfy mypyc
 
 
-def get_path_to_solved(final_node: AStarNode) -> Iterable[str]:
+def get_path_to_solved(final_node: AStarNode) -> List[Optional[str]]:
     current_node = final_node
     path = []
 
@@ -86,12 +87,12 @@ def get_path_to_solved(final_node: AStarNode) -> Iterable[str]:
         path.append(current_node.leading_move)
         current_node = current_node.parent_node
 
-    return reversed(path)
+    return path[::-1]
 
 
-def a_star_main(initial_board: Board, heuristic: str) -> tuple[list[str], int, int, int, str]:
+def a_star_main(initial_board: Board, heuristic: str) -> Tuple[List[Optional[str]], int, int, int, str]:
     (final_node, visited_count, processed_count, max_depth), execution_time = a_star(initial_board, heuristic)
 
-    path = list(get_path_to_solved(final_node))
+    path = get_path_to_solved(final_node)
 
     return path, visited_count, processed_count, max_depth, f'{execution_time:.3f}'

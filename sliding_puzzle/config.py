@@ -1,6 +1,6 @@
 import argparse
 import os.path
-from typing import Collection
+from typing import Tuple, List
 
 
 def get_parsed_args() -> argparse.Namespace:
@@ -23,7 +23,7 @@ def validate_parsed_args(parsed_args: argparse.Namespace):
         raise FileNotFoundError(f'Provided file: {parsed_args.board_file} was not found')
 
 
-def get_dimensions_and_values_from_file(file_path: str) -> tuple[list[int], list[int]]:
+def get_dimensions_and_values_from_file(file_path: str) -> Tuple[List[int], List[int]]:
     with open(file_path, 'r') as f:
         dimensions = [int(val) for val in f.readline().split()]
 
@@ -32,11 +32,11 @@ def get_dimensions_and_values_from_file(file_path: str) -> tuple[list[int], list
 
         values = [int(val) for val in f.read().split()]
 
-    validate_values_len(*dimensions, values=values)
+    validate_values_len(dimensions[0], dimensions[1], values=values)
     return dimensions, values
 
 
-def validate_values_len(rows_num: int, columns_num: int, values: Collection[int]):
+def validate_values_len(rows_num: int, columns_num: int, values: List[int]):
     if len(values) != rows_num * columns_num:
         raise EOFError(f'Number of values: {len(values)} '
                        f'does not match provided dimensions: {rows_num}x{columns_num}')

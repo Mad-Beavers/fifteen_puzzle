@@ -1,9 +1,6 @@
 import math
 import random
-from collections import namedtuple
-from typing import Iterable, Sequence
-
-Tile_pos = namedtuple('Tile_pos', ('row', 'column'))
+from typing import Iterable, Sequence, Tuple, Dict, List
 
 
 class Board:
@@ -12,8 +9,8 @@ class Board:
     default_rows_num: int = 4
     default_columns_num: int = 4
 
-    def __init__(self, rows_num: int = default_rows_num, columns_num: int = default_columns_num,
-                 values: Sequence[int] = None, tiles: dict[Tile_pos, int] = None):
+    def __init__(self, rows_num: int = 4, columns_num: int = 4,
+                 values: Sequence[int] = None, tiles: Dict[Tuple[int, int], int] = None):
 
         if any(dim < 2 for dim in (columns_num, rows_num)):
             raise ValueError('At least one dimension is less than 2')
@@ -33,20 +30,20 @@ class Board:
                 tiles_values = list(range(rows_num * columns_num))
                 random.shuffle(tiles_values)
 
-            self._tiles = {Tile_pos(i // columns_num + 1,
-                                    (i + 1) % columns_num if (i + 1) % columns_num != 0 else columns_num): val
+            self._tiles = {(i // columns_num + 1,
+                            (i + 1) % columns_num if (i + 1) % columns_num != 0 else columns_num): val
                            for i, val in enumerate(tiles_values)}
 
-        self._blank_tile_pos: Tile_pos = next(key for key, value in self._tiles.items() if value == 0)
+        self._blank_tile_pos: Tuple[int, int] = next(key for key, value in self._tiles.items() if value == 0)
 
     def __str__(self) -> str:
-        board_str_sequence = (f'{val:3d}  ' if index.column != self._columns_num else f'{val:3d}\n\n'
+        board_str_sequence = (f'{val:3d}  ' if index[1] != self._columns_num else f'{val:3d}\n\n'
                               for index, val in self._tiles.items())
 
         return ''.join(board_str_sequence).replace(' 0', '  ')
 
     @property
-    def tiles(self):
+    def tiles(self) -> Dict[Tuple[int, int], int]:
         return self._tiles.copy()  # restricting any outside modifications on original object
 
     @property
@@ -58,9 +55,6 @@ class Board:
         return self._columns_num
 
     def play(self, move_sequence: Iterable[str] = None, print_after_each_move: bool = True):
-        if move_sequence:
-            move_sequence = iter(move_sequence)
-
         while True:
             if print_after_each_move:
                 print(self)
@@ -71,7 +65,8 @@ class Board:
 
             if move_sequence:
                 try:
-                    key = next(move_sequence).lower()
+                    sequence = iter(move_sequence)
+                    key = next(sequence).lower()
                 except StopIteration:
                     return
             else:
@@ -93,33 +88,29 @@ class Board:
         blank_title_pos = self._blank_tile_pos
 
         if key == 'R':
-            self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column + 1))
+            self._swap_tiles(blank_title_pos, (blank_title_pos[0], blank_title_pos[1] + 1))
         elif key == 'L':
-            self._swap_tiles(blank_title_pos, (blank_title_pos.row, blank_title_pos.column - 1))
+            self._swap_tiles(blank_title_pos, (blank_title_pos[0], blank_title_pos[1] - 1))
         elif key == 'U':
-            self._swap_tiles(blank_title_pos, (blank_title_pos.row - 1, blank_title_pos.column))
+            self._swap_tiles(blank_title_pos, (blank_title_pos[0] - 1, blank_title_pos[1]))
         elif key == 'D':
-            self._swap_tiles(blank_title_pos, (blank_title_pos.row + 1, blank_title_pos.column))
+            self._swap_tiles(blank_title_pos, (blank_title_pos[0] + 1, blank_title_pos[1]))
 
-    def get_available_moves(self) -> list[str]:
+    def get_available_moves(self) -> List[str]:
         available_moves = []
-        if self._blank_tile_pos.column != self._columns_num:
+        if self._blank_tile_pos[1] != self._columns_num:
             available_moves.append('R')
-        if self._blank_tile_pos.column != 1:
+        if self._blank_tile_pos[1] != 1:
             available_moves.append('L')
-        if self._blank_tile_pos.row != 1:
+        if self._blank_tile_pos[0] != 1:
             available_moves.append('U')
-        if self._blank_tile_pos.row != self._rows_num:
+        if self._blank_tile_pos[0] != self._rows_num:
             available_moves.append('D')
         return available_moves
 
     def is_solved(self) -> bool:
         return all(val == expected for val, expected in zip(self._tiles.values(),
                                                             (*(range(1, self._rows_num * self._columns_num)), 0)))
-
-    def is_solved_two(self):
-        return all(val == (expected if expected != self._rows_num * self._columns_num else 0)
-                   for val, expected in zip(self._tiles.values(), range(1, self._rows_num * self._columns_num + 1)))
 
     def is_solvable(self) -> bool:
         if self._columns_num != self._rows_num:
@@ -131,13 +122,13 @@ class Board:
             if self._columns_num % 2:
                 return inversion_count % 2 == 0
             else:
-                return (self._rows_num + 1 - self._blank_tile_pos.row) % 2 != inversion_count % 2
+                return (self._rows_num + 1 - self._blank_tile_pos[0]) % 2 != inversion_count % 2
 
-    def get_tile_distance_from_solved(self, tile_position: tuple[int, int]) -> int:
+    def get_tile_distance_from_solved(self, tile_position: Tuple[int, int]) -> int:
         if self._tiles.get(tile_position) is None:
             raise AttributeError('Given position is not present in board')
 
-        tile_value = self._tiles.get(tile_position)
+        tile_value = self._tiles[tile_position]
 
         if tile_value == 0:
             solved_position = (self.rows_num, self._columns_num)
@@ -146,7 +137,7 @@ class Board:
                                tile_value % self._columns_num if tile_value % self._columns_num != 0
                                else self._columns_num)
 
-        return sum(math.fabs(a - b) for a, b in zip(tile_position, solved_position))
+        return int(sum(math.fabs(a - b) for a, b in zip(tile_position, solved_position)))
 
     @staticmethod
     def get_inversions_count(values: Iterable[int]) -> int:
@@ -161,8 +152,7 @@ class Board:
             sum(1 for val in values[i + 1:] if val < x)
             for i, x in enumerate(values))
 
-    def _swap_tiles(self, blank_title_pos: tuple[int, int], tile_pos: tuple[int, int]):
-        blank_title_pos, tile_pos = Tile_pos(*blank_title_pos), Tile_pos(*tile_pos)
+    def _swap_tiles(self, blank_title_pos: Tuple[int, int], tile_pos: Tuple[int, int]):
         self._blank_tile_pos = tile_pos
         self._tiles[blank_title_pos], self._tiles[tile_pos] = self._tiles[tile_pos], self._tiles[blank_title_pos]
 
